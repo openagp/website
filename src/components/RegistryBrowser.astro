@@ -1,0 +1,117 @@
+---
+// Live browser for the public registry at github.com/openagp/registry.
+// Fetches actors/*.json client-side so the directory is always current
+// without rebuilding the site.
+---
+
+<div id="registry-browser" data-state="loading">
+	<p class="reg-status">Loading conformant actors from the public registry…</p>
+	<div class="reg-grid"></div>
+</div>
+
+<style>
+	.reg-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+		gap: 1rem;
+		margin-top: 1rem;
+	}
+	.reg-card {
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 0.75rem;
+		padding: 1rem 1.25rem;
+	}
+	.reg-card h3 {
+		margin: 0 0 0.25rem;
+		font-size: var(--sl-text-lg);
+		word-break: break-all;
+	}
+	.reg-kind {
+		text-transform: uppercase;
+		font-size: var(--sl-text-xs);
+		letter-spacing: 0.05em;
+		opacity: 0.7;
+	}
+	.reg-levels span {
+		display: inline-block;
+		margin: 0.5rem 0.35rem 0 0;
+		padding: 0.05rem 0.5rem;
+		border-radius: 1rem;
+		background: var(--sl-color-accent-low);
+		color: var(--sl-color-accent-high);
+		font-weight: 700;
+		font-size: var(--sl-text-xs);
+	}
+	.reg-meta {
+		margin-top: 0.6rem;
+		font-size: var(--sl-text-sm);
+		opacity: 0.85;
+	}
+	.reg-status {
+		opacity: 0.8;
+	}
+</style>
+
+<script>
+	type Actor = {
+		actor?: { fqdn?: string; kind?: string; display_name?: string };
+		conformance_levels?: string[];
+		public_keys?: unknown[];
+		metadata?: { homepage?: string; description?: string };
+	};
+
+	const root = document.getElementById('registry-browser');
+	const grid = root?.querySelector('.reg-grid') as HTMLElement | null;
+	const status = root?.querySelector('.reg-status') as HTMLElement | null;
+	const esc = (s: string) =>
+		s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+
+	async function load() {
+		if (!grid || !status) return;
+		try {
+			const listRes = await fetch(
+				'https://api.github.com/repos/openagp/registry/contents/actors',
+				{ headers: { Accept: 'application/vnd.github+json' } },
+			);
+			if (!listRes.ok) throw new Error(`registry listing returned ${listRes.status}`);
+			const files = (await listRes.json()) as Array<{ name: string; download_url: string }>;
+			const jsons = files.filter((f) => f.name.endsWith('.json'));
+			if (jsons.length === 0) {
+				status.textContent = 'No actors registered yet — be the first.';
+				return;
+			}
+			const actors = await Promise.all(
+				jsons.map((f) => fetch(f.download_url).then((r) => r.json() as Promise<Actor>)),
+			);
+			status.textContent = `${actors.length} registered actor${actors.length === 1 ? '' : 's'}.`;
+			grid.innerHTML = actors
+				.map((a) => {
+					const fqdn = esc(a.actor?.fqdn ?? 'unknown');
+					const name = esc(a.actor?.display_name ?? fqdn);
+					const kind = esc(a.actor?.kind ?? '');
+					const levels = (a.conformance_levels ?? [])
+						.map((l) => `<span>${esc(l)}</span>`)
+						.join('');
+					const keys = a.public_keys?.length ?? 0;
+					const home = a.metadata?.homepage;
+					const homeLink = home
+						? `<div class="reg-meta"><a href="${esc(home)}" rel="nofollow noopener">${esc(home)}</a></div>`
+						: '';
+					return `<div class="reg-card">
+						<span class="reg-kind">${kind}</span>
+						<h3>${name}</h3>
+						<div class="reg-meta">${fqdn}</div>
+						<div class="reg-levels">${levels}</div>
+						<div class="reg-meta">${keys} registered key${keys === 1 ? '' : 's'}</div>
+						${homeLink}
+					</div>`;
+				})
+				.join('');
+		} catch (err) {
+			status.innerHTML =
+				'Could not load the registry live. Browse it directly on <a href="https://github.com/openagp/registry/tree/main/actors">GitHub</a>.';
+			console.error(err);
+		}
+	}
+	load();
+</script>

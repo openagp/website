@@ -1,0 +1,79 @@
+/* OpenAGP brand — aligned with the org profile (blue #2a6db8, purple #7c3aed). */
+:root {
+	--sl-color-accent-low: #16243a;
+	--sl-color-accent: #2a6db8;
+	--sl-color-accent-high: #b8d4f0;
+	--openagp-purple: #7c3aed;
+}
+:root[data-theme='light'] {
+	--sl-color-accent-low: #d3e3f5;
+	--sl-color-accent: #2a6db8;
+	--sl-color-accent-high: #14365c;
+}
+
+/* Hero on the splash landing page. */
+.hero h1 {
+	font-weight: 750;
+	letter-spacing: -0.02em;
+}
+.hero .tagline {
+	max-width: 48ch;
+}
+
+/* Two-column comparison used on the landing page. */
+.compare {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 1rem;
+	margin-top: 1.5rem;
+}
+@media (max-width: 50rem) {
+	.compare {
+		grid-template-columns: 1fr;
+	}
+}
+.compare > div {
+	border: 1px solid var(--sl-color-gray-5);
+	border-radius: 0.75rem;
+	padding: 1rem 1.25rem;
+	background: var(--sl-color-black);
+}
+.compare .without {
+	border-color: color-mix(in srgb, #d14343 40%, var(--sl-color-gray-5));
+}
+.compare .with {
+	border-color: color-mix(in srgb, var(--sl-color-accent) 55%, var(--sl-color-gray-5));
+}
+.compare h3 {
+	margin-top: 0;
+	font-size: var(--sl-text-lg);
+}
+.compare ul {
+	margin: 0;
+	padding-left: 1.1rem;
+}
+.compare li {
+	margin: 0.35rem 0;
+}
+
+/* Conformance / persona cards. */
+.cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+	gap: 1rem;
+	margin-top: 1.5rem;
+}
+.card {
+	border: 1px solid var(--sl-color-gray-5);
+	border-radius: 0.75rem;
+	padding: 1.25rem;
+}
+.card .level {
+	display: inline-block;
+	font-weight: 700;
+	color: var(--openagp-purple);
+}
+
+.badge-row a {
+	margin-right: 0.4rem;
+}

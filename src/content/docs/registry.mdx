@@ -1,0 +1,32 @@
+---
+title: Registry
+description: The public directory of AGP-conformant actors and their public keys. Browse conformant vendors and planes, or submit your own signed entry.
+---
+
+import RegistryBrowser from '../../components/RegistryBrowser.astro';
+import { LinkButton } from '@astrojs/starlight/components';
+
+The **AGP Registry** is a public, decentralized directory of conformant actors — vendors, planes, and customers — and their public keys. It is the source of truth a plane uses to verify signatures before trusting a single byte.
+
+## Conformant actors
+
+<RegistryBrowser />
+
+<p><sub>Loaded live from <a href="https://github.com/openagp/registry/tree/main/actors">github.com/openagp/registry</a>. The example entry is a template, not a production actor.</sub></p>
+
+## How the registry works
+
+- Each actor is **one signed JSON file** at `actors/<fqdn>.json`, validated against [`schemas/actor.json`](https://github.com/openagp/spec/blob/main/schemas/actor.json).
+- Entries are **self-signed** (RFC 8785 JCS + Ed25519, per [ADR 0001](/spec/adr-0001/)). A merge attests that the entry is well-formed and its conformance report verifies — **not** an endorsement of the actor's product.
+- Anyone can **mirror** the registry; verification works without the central index.
+
+## Submitting your entry
+
+<LinkButton href="https://github.com/openagp/registry#submitting-an-entry" icon="external">Submit an entry</LinkButton>
+
+1. Run [`agp-cts`](https://github.com/openagp/cts) against your endpoint to produce a signed conformance report.
+2. Copy [`actors/example.openagp.io.json`](https://github.com/openagp/registry/blob/main/actors/example.openagp.io.json) to `actors/<your-fqdn>.json` and fill in your identity, keys, endpoints, and conformance report.
+3. Sign it with one of your advertised keys, then open a PR.
+4. A maintainer verifies the report signature, schema validity, and endpoint reachability, then merges.
+
+Registry data is published under **CC0** — the index is public domain; the signed claims inside each entry remain authored by their submitters.

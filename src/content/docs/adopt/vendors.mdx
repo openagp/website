@@ -1,0 +1,83 @@
+---
+title: For vendors
+description: Ship AGP L1 in under an engineer-week with the reference SDKs, then prove conformance with agp-cts.
+---
+
+import { Steps, Tabs, TabItem, LinkButton } from '@astrojs/starlight/components';
+
+If you ship AI agents, becoming AGP-conformant makes you **governable by every conformant customer plane** — and discoverable in the public registry. L1 costs **under one engineer-week**.
+
+## 1. Install a reference SDK
+
+<Tabs>
+  <TabItem label="Python">
+```bash
+pip install openagp
+```
+  </TabItem>
+  <TabItem label="TypeScript">
+```bash
+npm install @openagp/sdk
+```
+  </TabItem>
+</Tabs>
+
+## 2. Emit a signed event for every action
+
+<Tabs>
+  <TabItem label="Python">
+```python
+from openagp.events import sign
+
+event = {
+    "agp_version": "0.1",
+    "schema_version": "1.0",
+    "event_id": "evt_01JFXY8B0000000000000000AB",
+    "occurred_at": "2026-08-12T14:23:11.412Z",
+    "actor": {"vendor": "acme.com", "agent_id": "agt_42"},
+    "action": {"type": "tool_call", "tool_name": "browser.navigate"},
+}
+signed = sign(event, private_key_b64=KEY, key_id="acme-2026-q2")
+plane_client.emit(signed)
+```
+  </TabItem>
+  <TabItem label="TypeScript">
+```ts
+import { sign } from "@openagp/sdk";
+
+const event = {
+  agp_version: "0.1",
+  schema_version: "1.0",
+  event_id: "evt_01JFXY8B0000000000000000AB",
+  occurred_at: "2026-08-12T14:23:11.412Z",
+  actor: { vendor: "acme.com", agent_id: "agt_42" },
+  action: { type: "tool_call", tool_name: "browser.navigate" },
+};
+const signed = sign(event, { privateKeyB64: KEY, keyId: "acme-2026-q2" });
+await planeClient.emit(signed);
+```
+  </TabItem>
+</Tabs>
+
+## 3. Prove conformance
+
+```bash
+agp-cts vectors            # confirm your crypto agrees byte-for-byte
+```
+
+## 4. Register
+
+Once `agp-cts` passes, [submit your signed registry entry](/registry/) so customers can discover you and pin your conformance level in procurement.
+
+## Try the whole flow first
+
+The runnable end-to-end example signs every artifact and prints a 6-step narrative — no HTTP, no external services:
+
+```bash
+git clone https://github.com/openagp/examples
+cd examples/acme-walkthrough && make demo
+```
+
+<LinkButton href="/learn/conformance/" icon="right-arrow">Conformance levels</LinkButton>
+<LinkButton href="https://github.com/openagp/sdk-python" variant="minimal" icon="external">Python SDK</LinkButton>
+<LinkButton href="https://github.com/openagp/sdk-typescript" variant="minimal" icon="external">TypeScript SDK</LinkButton>

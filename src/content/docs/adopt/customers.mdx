@@ -1,0 +1,54 @@
+---
+title: For customers
+description: Author one AGP policy and have it enforced across every conformant vendor, with signed events you can verify.
+---
+
+import { LinkButton } from '@astrojs/starlight/components';
+
+If you run AI agents across multiple vendors, AGP lets you **author one policy** and have it enforced everywhere — with a single, signed, verifiable audit trail.
+
+## One policy, every vendor
+
+Policy is declarative YAML. The plane signs it and pushes it to each conformant vendor, which applies it and stamps the decision on every event.
+
+```yaml
+agp_policy_version: "0.1"
+policy_id: "acme-prod-policies"
+issuer: "acme.example.com"
+applies_to:
+  vendors: ["*"]
+  agents: ["*"]
+rules:
+  - id: rule_pii_outbound
+    when:
+      action.type: tool_call
+      action.target_resource:
+        domain_not_in: ["acme.com", "*.acme.com"]
+      action.input_summary:
+        contains_pattern: "ssn|credit_card|email"
+    then:
+      decision: blocked
+      reason: "PII outbound to external domain"
+  - id: rule_log_db_writes
+    when:
+      action.tool_name:
+        starts_with: "database.write"
+    then:
+      decision: logged_only
+      annotate:
+        scf_controls: ["DATA-08", "AUDIT-12"]
+```
+
+## What you get
+
+- **One audit view.** Every vendor's events arrive in one canonical, signed format — no per-vendor log parsing.
+- **Proof of enforcement.** Each event carries the `policy_hash` that was in force, so you can demonstrate *which* policy version applied to *which* action.
+- **Verifiable provenance.** Events are Ed25519-signed; your ledger is hash-chained and independently verifiable — you don't have to take a vendor's word.
+- **Procurement leverage.** Require a minimum [conformance level](/learn/conformance/) in your RFPs; discover conformant vendors in the [registry](/registry/).
+
+## Choosing conformance levels per workload
+
+Use **L1** vendors for observability, **L2** for in-vendor policy enforcement, and prefer **L3** vendors for your most sensitive, high-stakes workloads where actions must be gated in real time.
+
+<LinkButton href="/learn/how-it-works/" icon="right-arrow">How the flows work</LinkButton>
+<LinkButton href="/spec/" variant="minimal" icon="open-book">Read the spec</LinkButton>

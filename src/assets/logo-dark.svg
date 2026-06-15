@@ -1,0 +1,5 @@
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="OpenAGP">
+  <path d="M20 3 L34 9 V20 C34 29 28 35 20 37 C12 35 6 29 6 20 V9 Z" fill="#2a6db8"/>
+  <path d="M20 3 L34 9 V20 C34 29 28 35 20 37 C12 35 6 29 6 20 V9 Z" stroke="#7c3aed" stroke-width="1.5"/>
+  <path d="M13.5 20.5 L18 25 L27 14.5" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>

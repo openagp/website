@@ -1,0 +1,20 @@
+{
+  "name": "openagp-website",
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": {
+    "sync-spec": "node scripts/sync-spec.mjs",
+    "predev": "node scripts/sync-spec.mjs",
+    "dev": "astro dev",
+    "start": "astro dev",
+    "prebuild": "node scripts/sync-spec.mjs",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.40.0",
+    "astro": "^6.4.5",
+    "sharp": "^0.34.5"
+  }
+}
