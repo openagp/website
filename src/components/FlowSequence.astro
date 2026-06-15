@@ -1,0 +1,52 @@
+---
+const { caption } = Astro.props;
+// lifelines
+const P = 130, V = 430, A = 690;
+---
+<figure class="agp-fig">
+	<svg viewBox="0 0 780 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sequence of the three AGP flows">
+		<defs>
+			<marker id="seq-a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 Z" class="dg-accent"></path></marker>
+			<marker id="seq-m" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 Z" fill="#7c3aed"></path></marker>
+		</defs>
+		<!-- headers -->
+		<rect class="dg-box" x={P-70} y="16" width="140" height="40" rx="6"></rect>
+		<text class="dg-label" x={P} y="41" text-anchor="middle">Plane</text>
+		<rect class="dg-box" x={V-70} y="16" width="140" height="40" rx="6"></rect>
+		<text class="dg-label" x={V} y="41" text-anchor="middle">Vendor</text>
+		<rect class="dg-box-soft" x={A-60} y="16" width="120" height="40" rx="6"></rect>
+		<text class="dg-label" x={A} y="41" text-anchor="middle">Agent</text>
+		<!-- lifelines -->
+		<line class="dg-muted" x1={P} y1="56" x2={P} y2="410" stroke-dasharray="3 4"></line>
+		<line class="dg-muted" x1={V} y1="56" x2={V} y2="410" stroke-dasharray="3 4"></line>
+		<line class="dg-muted" x1={A} y1="56" x2={A} y2="410" stroke-dasharray="3 4"></line>
+
+		<!-- B: policy push -->
+		<path class="dg-flow dg-flow-a" d={`M${P} 90 H${V}`} marker-end="url(#seq-a)"></path>
+		<text class="dg-flowlabel dg-accent" x={(P+V)/2} y="82" text-anchor="middle">① B · POST /policy (signed YAML)</text>
+		<path class="dg-flow dg-muted" d={`M${V} 112 H${P}`} marker-end="url(#seq-a)" stroke-dasharray="4 3"></path>
+		<text class="dg-flowlabel" x={(P+V)/2} y="128" text-anchor="middle">202 Accepted + policy_hash</text>
+
+		<!-- agent acts -->
+		<path class="dg-flow dg-muted" d={`M${A} 168 H${V}`} marker-end="url(#seq-a)"></path>
+		<text class="dg-flowlabel" x={(V+A)/2} y="160" text-anchor="middle">② agent attempts action</text>
+
+		<!-- C: decision -->
+		<path class="dg-flow dg-flow-c" d={`M${V} 210 H${P}`} marker-end="url(#seq-m)"></path>
+		<text class="dg-flowlabel" x={(P+V)/2} y="202" text-anchor="middle" fill="#7c3aed">③ C · POST /decision (high-stakes)</text>
+		<path class="dg-flow dg-flow-c" d={`M${P} 232 H${V}`} marker-end="url(#seq-m)"></path>
+		<text class="dg-flowlabel" x={(P+V)/2} y="248" text-anchor="middle" fill="#7c3aed">allowed | blocked (≤ 300 ms)</text>
+
+		<!-- apply -->
+		<path class="dg-flow dg-muted" d={`M${V} 286 H${A}`} marker-end="url(#seq-a)"></path>
+		<text class="dg-flowlabel" x={(V+A)/2} y="278" text-anchor="middle">④ apply decision</text>
+
+		<!-- A: event -->
+		<path class="dg-flow dg-flow-a" d={`M${V} 332 H${P}`} marker-end="url(#seq-a)"></path>
+		<text class="dg-flowlabel dg-accent" x={(P+V)/2} y="324" text-anchor="middle">⑤ A · POST /events (signed canonical event)</text>
+		<!-- anchor -->
+		<rect class="dg-box-soft" x={P-66} y="356" width="132" height="34" rx="5"></rect>
+		<text class="dg-sub" x={P} y="377" text-anchor="middle">verify → anchor in ledger</text>
+	</svg>
+	{caption && <figcaption set:html={caption}></figcaption>}
+</figure>

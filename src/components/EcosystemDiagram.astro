@@ -1,0 +1,62 @@
+---
+const { caption } = Astro.props;
+---
+<figure class="agp-fig">
+	<svg viewBox="0 0 780 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The AGP ecosystem">
+		<defs>
+			<marker id="eco-a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 Z" class="dg-accent"></path></marker>
+			<marker id="eco-m" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 Z" fill="#7c3aed"></path></marker>
+		</defs>
+
+		<!-- Vendors (top) -->
+		<g>
+			<rect class="dg-box-soft" x="60" y="30" width="160" height="58" rx="7"></rect>
+			<text class="dg-label" x="140" y="56" text-anchor="middle">Vendor A</text>
+			<text class="dg-sub" x="140" y="74" text-anchor="middle">agents · L1+L2</text>
+
+			<rect class="dg-box-soft" x="310" y="30" width="160" height="58" rx="7"></rect>
+			<text class="dg-label" x="390" y="56" text-anchor="middle">Vendor B</text>
+			<text class="dg-sub" x="390" y="74" text-anchor="middle">agents · L1</text>
+
+			<rect class="dg-box-soft" x="560" y="30" width="160" height="58" rx="7"></rect>
+			<text class="dg-label" x="640" y="56" text-anchor="middle">Vendor C</text>
+			<text class="dg-sub" x="640" y="74" text-anchor="middle">agents · L1+L2+L3</text>
+		</g>
+
+		<!-- Plane (center) -->
+		<rect class="dg-box" x="270" y="190" width="240" height="86" rx="9"></rect>
+		<text class="dg-label" x="390" y="222" text-anchor="middle" font-size="15">Customer Governance Plane</text>
+		<text class="dg-sub" x="390" y="242" text-anchor="middle">verifies signatures · applies policy</text>
+		<!-- ledger glyph -->
+		<g transform="translate(300,252)">
+			<ellipse class="dg-muted" cx="14" cy="4" rx="14" ry="4" fill="none"></ellipse>
+			<path class="dg-muted" d="M0 4 V14 a14 4 0 0 0 28 0 V4" fill="none"></path>
+			<text class="dg-sub" x="40" y="14">hash-chained ledger</text>
+		</g>
+
+		<!-- Vendor <-> Plane flows -->
+		<path class="dg-flow dg-flow-a" d="M140 88 C140 150 300 150 320 188" marker-end="url(#eco-a)"></path>
+		<path class="dg-flow dg-flow-c" d="M360 188 C340 150 200 150 150 90" marker-end="url(#eco-m)"></path>
+		<path class="dg-flow dg-flow-a" d="M390 88 V186" marker-end="url(#eco-a)"></path>
+		<path class="dg-flow dg-flow-a" d="M640 88 C640 150 480 150 460 188" marker-end="url(#eco-a)"></path>
+		<path class="dg-flow dg-flow-c" d="M430 188 C450 150 600 150 630 90" marker-end="url(#eco-m)"></path>
+		<text class="dg-flowlabel dg-accent" x="250" y="140">A events ↓</text>
+		<text class="dg-flowlabel" x="300" y="172" fill="#7c3aed">B policy ↑</text>
+		<text class="dg-flowlabel" x="470" y="140" fill="#7c3aed">C decisions ↕</text>
+
+		<!-- Registry (left) -->
+		<rect class="dg-box-soft" x="40" y="330" width="180" height="58" rx="7"></rect>
+		<text class="dg-label" x="130" y="356" text-anchor="middle">Registry</text>
+		<text class="dg-sub" x="130" y="374" text-anchor="middle">public keys, signed</text>
+		<path class="dg-flow dg-muted" d="M210 350 C270 350 290 300 300 278" marker-end="url(#eco-a)" stroke-dasharray="4 3"></path>
+		<text class="dg-flowlabel" x="222" y="318">key lookup</text>
+
+		<!-- Auditor (right) -->
+		<rect class="dg-box-soft" x="560" y="330" width="180" height="58" rx="7"></rect>
+		<text class="dg-label" x="650" y="356" text-anchor="middle">Auditor</text>
+		<text class="dg-sub" x="650" y="374" text-anchor="middle">verifies independently</text>
+		<path class="dg-flow dg-muted" d="M480 278 C500 300 560 350 620 350" marker-end="url(#eco-a)" stroke-dasharray="4 3"></path>
+		<text class="dg-flowlabel" x="500" y="318">signed evidence</text>
+	</svg>
+	{caption && <figcaption set:html={caption}></figcaption>}
+</figure>

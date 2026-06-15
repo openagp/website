@@ -42,6 +42,16 @@ export default defineConfig({
 					],
 				},
 				{
+					label: 'Case studies',
+					items: [
+						{ label: 'Overview', slug: 'case-studies' },
+						{ label: 'Blocking PII exfiltration (L2)', slug: 'case-studies/pii-exfiltration' },
+						{ label: 'Surviving an EU AI Act audit', slug: 'case-studies/eu-ai-act-audit' },
+						{ label: 'Cross-vendor incident (lineage)', slug: 'case-studies/multi-vendor-incident' },
+						{ label: 'Human-approving a wire transfer (L3)', slug: 'case-studies/realtime-approval' },
+					],
+				},
+				{
 					label: 'Adopt',
 					items: [
 						{ label: 'For vendors', slug: 'adopt/vendors' },

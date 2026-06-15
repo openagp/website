@@ -1,0 +1,40 @@
+---
+const { caption } = Astro.props;
+const sign = ['Build message', 'signature = {key_id, alg}', 'JCS canonicalize (RFC 8785)', 'Ed25519.sign(privkey)', 'attach signature.value'];
+const verify = ['Receive message', 'validate against JSON Schema', 'strip value, keep {key_id, alg}', 'JCS canonicalize', 'resolve key via Registry', 'Ed25519.verify → authentic'];
+---
+<figure class="agp-fig">
+	<svg viewBox="0 0 820 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sign and verify pipelines">
+		<defs>
+			<marker id="sf-a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 Z" class="dg-accent"></path></marker>
+		</defs>
+		<text class="dg-label" x="20" y="34" fill="var(--sl-color-accent)">SIGN</text>
+		{sign.map((s, i) => {
+			const x = 20 + i * 160;
+			return (
+				<g>
+					<rect class="dg-box" x={x} y={48} width="138" height="54" rx="6"></rect>
+					<foreignObject x={x + 6} y={52} width="126" height="46">
+						<div xmlns="http://www.w3.org/1999/xhtml" style="font:600 10.5px var(--sl-font-mono); color:var(--sl-color-white); display:flex; align-items:center; height:100%; text-align:center; justify-content:center; line-height:1.25;">{s}</div>
+					</foreignObject>
+					{i < sign.length - 1 && <path class="dg-flow dg-flow-a" d={`M${x + 138} 75 H${x + 160}`} marker-end="url(#sf-a)"></path>}
+				</g>
+			);
+		})}
+
+		<text class="dg-label" x="20" y="172" fill="var(--sl-color-accent)">VERIFY</text>
+		{verify.map((s, i) => {
+			const x = 20 + i * 132;
+			return (
+				<g>
+					<rect class="dg-box" x={x} y={186} width="112" height="56" rx="6"></rect>
+					<foreignObject x={x + 5} y={190} width="102" height="48">
+						<div xmlns="http://www.w3.org/1999/xhtml" style="font:600 10px var(--sl-font-mono); color:var(--sl-color-white); display:flex; align-items:center; height:100%; text-align:center; justify-content:center; line-height:1.2;">{s}</div>
+					</foreignObject>
+					{i < verify.length - 1 && <path class="dg-flow dg-flow-a" d={`M${x + 112} 214 H${x + 132}`} marker-end="url(#sf-a)"></path>}
+				</g>
+			);
+		})}
+	</svg>
+	{caption && <figcaption set:html={caption}></figcaption>}
+</figure>

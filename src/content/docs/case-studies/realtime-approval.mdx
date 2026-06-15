@@ -1,0 +1,70 @@
+---
+title: "Case study: human-approving a wire transfer"
+description: A finance agent proposes a high-value payment. AGP L3 gates it on a real-time human decision and proves the human approved before money moved.
+---
+
+import FlowSequence from '../../../components/FlowSequence.astro';
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+**Conformance level: L3.** This is the flow L1/L2 cannot provide: stopping an action *before* it executes, pending a real-time decision.
+
+## The situation
+
+A treasury-automation agent drafts and submits supplier payments. Policy: payments **over $10,000** require a human treasurer to approve, in the moment, before the transfer is initiated. The agent proposes a $42,000 wire.
+
+## Without AGP
+
+"Human approval" is a feature each vendor implements differently, if at all — a Slack ping here, an email there, none of it tied to the action in a verifiable way. Proving *that a specific human approved this specific transfer before it executed* means correlating chat logs with payment logs by hand. And if the approval UI is down, behavior is undefined: some systems fail open.
+
+## With AGP
+
+The vendor is L3. High-value payments are flagged in policy as requiring a synchronous decision.
+
+<Steps>
+
+1. **The agent proposes the action.** Before calling `payment.wire`, the vendor sees the policy match and issues a **decision request (Flow C)** to the plane:
+
+   ```json
+   {
+     "decision_request_id": "drq_01JFX...",
+     "proposed_action": { "type": "tool_call", "tool_name": "payment.wire",
+                          "target_resource": "supplier-9921", "amount": "42000.00" },
+     "deadline_at": "2026-08-12T14:23:11.300Z",
+     "signature": { "key_id": "vendor-2026-q2", "alg": "Ed25519" }
+   }
+   ```
+
+2. **The plane routes to a human.** The policy for amounts > $10k requires treasurer sign-off. The plane surfaces the request to the on-call treasurer, who reviews and **approves**.
+
+3. **The plane responds — signed — within budget.** Before `deadline_at`:
+
+   ```json
+   { "decision_request_id": "drq_01JFX...", "decision": "allowed",
+     "rule_id": "rule_large_payment_review",
+     "rationale": "approved by treasurer u_8821",
+     "signature": { "key_id": "plane-2026-q2", "alg": "Ed25519" } }
+   ```
+
+4. **The vendor honors it exactly.** `allowed` → the wire executes. Had the response been `blocked`, the wire would not.
+
+5. **The event records the whole story (Flow A).** The emitted event links the `decision_request_id`, the decision, the approving principal, and whether the budget was met.
+
+</Steps>
+
+<FlowSequence caption="<b>Figure 1.</b> The L3 round-trip (③–④): the vendor pauses the action, the plane returns a signed decision within the budget, and only then does the vendor apply it — here, executing the wire after a human approved." />
+
+<Aside type="caution" title="What if the treasurer doesn't respond in time?">
+The action does not silently proceed. If the plane misses `deadline_at`, the vendor applies the policy **fallback** — for a payment, that's `block` — and emits an event recording that the fallback fired. A high-value transfer **fails closed**, and the audit trail says exactly why.
+</Aside>
+
+## The outcome — what is now verifiable
+
+- The wire executed **only after** a named human approved it — and the approval is bound to *this* transfer via `decision_request_id`.
+- The plane's decision is **signed**, so "the treasurer approved" is a verifiable fact, not a chat screenshot.
+- The control **fails closed** on timeout, and that is provable from the event.
+- The same L3 mechanism works for any high-stakes action — deleting data, sending external email, deploying code — across every conformant vendor.
+
+## Related
+
+- [Conformance levels → L3](/learn/conformance/#l3--real-time-decisions) — the decision budget and fallback contract.
+- [How it works → Flow C](/learn/how-it-works/#flow-c--real-time-decision-l3).

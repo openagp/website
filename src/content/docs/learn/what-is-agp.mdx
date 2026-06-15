@@ -1,0 +1,68 @@
+---
+title: What is AGP?
+description: AGP is a vendor-neutral protocol for governing AI agents — standardizing what an agent is allowed to do, who authorized it, and what it actually did, signed and verifiable across every vendor.
+---
+
+import EcosystemDiagram from '../../../components/EcosystemDiagram.astro';
+import { Aside } from '@astrojs/starlight/components';
+
+**AGP — the Agent Governance Protocol — is a cross-vendor standard for governing AI agents.** It defines a small set of signed, schema-defined messages exchanged between a customer's **governance plane** and an agent **vendor**, so that one policy can be enforced — and one verifiable audit trail produced — across every AI agent vendor a customer uses.
+
+> The way **SAML** standardized *"who is this user"* across identity vendors, and **MCP** standardized *"what tools can an agent call"* across model vendors, **AGP** standardizes *"what is this agent allowed to do, who said so, and what did it actually do?"*
+
+## The problem: governance fragments per vendor
+
+Within 18–24 months a typical enterprise will run 50–200 AI agents across 10–30 vendors. Today every vendor invents its own answer to three questions, and none of them interoperate:
+
+| Question | Today (per vendor) | With AGP |
+|---|---|---|
+| **What did the agent do?** | A different audit format per vendor — trust-center JSON, plain-text logs, proprietary signals. | One canonical, signed `event` schema. |
+| **What is it allowed to do?** | A different admin console per vendor, if any. | One policy DSL, pushed to every vendor. |
+| **Who vouches for this record?** | "Trust our dashboard." | An Ed25519 signature you verify yourself. |
+
+The customer needs a *unified, trustworthy* view and cannot get one, because no two vendors agree on what an "agent action" even is. This is precisely the problem identity faced before SAML: every SaaS app invented its own login, until a protocol made them interoperate.
+
+## The shape of a solution
+
+AGP is deliberately a **protocol**, not a product. It standardizes the wire format and the trust model; it does *not* dictate what a plane's UI looks like, how a vendor builds agents, or where events are stored. Five roles participate:
+
+<EcosystemDiagram caption="<b>Figure 1.</b> The AGP ecosystem. Vendors emit signed events (A) and receive policy (B); high-stakes actions round-trip for a real-time decision (C). The plane verifies every signature against the public Registry before trusting a byte, and an Auditor can re-verify the same evidence independently." />
+
+### The actors
+
+- **Customer** — the organization running agents. Authors policy, owns the ledger, receives events.
+- **Vendor** — provides agent capability (a model vendor, an internal agent platform, a SaaS that ships agents). Receives policy, emits events, and — at L3 — asks the plane for real-time decisions.
+- **Plane** — the customer's governance control plane. Pushes policy, ingests and verifies events, answers decision requests, and anchors everything into a hash-chained ledger. Any AGP-compliant implementation can be a plane.
+- **Registry** — a public, decentralized directory mapping each actor to its public keys. The plane resolves `signature.key_id` here before trusting a message.
+- **Auditor** — a read-only consumer of signed events: internal compliance, an external auditor, or a regulator. Crucially, an auditor verifies signatures **without trusting the plane or the vendor**.
+
+<Aside type="note" title="Why “on behalf of a human”">
+Every action carries a `human_principal` — a salted hash of the upstream user id, never the plaintext. This lets a customer answer "which person was this agent acting for?" while keeping the identity out of cross-vendor logs.
+</Aside>
+
+## What makes the record trustworthy
+
+AGP's trust model is **public-key cryptography end-to-end**, not vendor reputation:
+
+- Every authority-bearing message is **Ed25519-signed** and canonicalized with **RFC 8785 (JCS)** — so the exact bytes that get signed are identical in every language. See [ADR 0001](/spec/adr-0001/) and the [How it works](/learn/how-it-works/#signing-and-verification) page.
+- **Events** are signed by the vendor; **policies** by the customer; **decision responses** by the plane.
+- A forged event requires a **key compromise**, not just a compromised database — and the customer's ledger is **hash-chained**, so reordering or deletion is detectable.
+
+This is the difference between *"our dashboard says the agent didn't exfiltrate data"* and *"here is a signed, independently-verifiable record that it was blocked."* The latter is what an EU AI Act or HIPAA auditor can actually accept.
+
+## How deep does a vendor have to go?
+
+A vendor picks a **conformance level** and advertises it in a `.well-known/agp` discovery document:
+
+- **L1** — emit signed events (passive observability). Ships in ≤ 1 engineer-week.
+- **L2** — also accept and enforce customer policy.
+- **L3** — also gate high-stakes actions via a synchronous decision callback.
+
+See [Conformance levels](/learn/conformance/) for the full breakdown.
+
+## Next
+
+- [How it works](/learn/how-it-works/) — the three flows, message by message, with the signing pipeline.
+- [Conformance levels](/learn/conformance/) — what L1 / L2 / L3 require and cost.
+- [Case studies](/case-studies/) — end-to-end, relatable scenarios.
+- [The specification](/spec/) — the full v0.1 working draft.

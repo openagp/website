@@ -1,0 +1,23 @@
+---
+const { caption } = Astro.props;
+---
+<figure class="agp-fig">
+	<svg viewBox="0 0 720 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Conformance levels as nested capabilities">
+		<!-- L1 outer -->
+		<rect class="dg-box-soft" x="20" y="30" width="680" height="240" rx="10"></rect>
+		<text class="dg-label" x="44" y="56">L1 — Events (Flow A)</text>
+		<text class="dg-sub" x="44" y="74">emit signed canonical events · passive observability</text>
+
+		<!-- L2 middle -->
+		<rect class="dg-box" x="60" y="92" width="600" height="158" rx="9"></rect>
+		<text class="dg-label" x="84" y="118">L2 — Governance (+ Flow B)</text>
+		<text class="dg-sub" x="84" y="136">accept & apply customer policy · stamp policy_hash</text>
+
+		<!-- L3 inner -->
+		<rect x="100" y="150" width="520" height="84" rx="8" fill="none" stroke="#7c3aed" stroke-width="1.6"></rect>
+		<text class="dg-label" x="124" y="178" fill="#7c3aed">L3 — Real-time (+ Flow C)</text>
+		<text class="dg-sub" x="124" y="196">synchronous decision callback · gate in &lt;300ms</text>
+		<text class="dg-sub" x="124" y="214">human-in-the-loop as a protocol primitive</text>
+	</svg>
+	{caption && <figcaption set:html={caption}></figcaption>}
+</figure>

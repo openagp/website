@@ -1,0 +1,53 @@
+---
+title: "Case study: surviving an EU AI Act audit"
+description: A compliance lead must evidence human oversight and automated policy enforcement across many agent vendors. With AGP it's a verifiable query, not a quarter of manual evidence-gathering.
+---
+
+import SigningFlow from '../../../components/SigningFlow.astro';
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+**Role: auditor / compliance.** No new conformance level required — this is what L1+L2 evidence *enables*.
+
+## The situation
+
+Acme is subject to the EU AI Act. An assessor asks for evidence under **Article 14 (Human Oversight)** and the organization's own policy controls: *show that high-risk agent actions over the last quarter were governed, and that enforcement actually happened.* Acme runs agents across seven vendors.
+
+## Without AGP
+
+The compliance lead opens seven dashboards, exports seven incompatible log formats, manually reconciles timestamps, and assembles a slide deck. The evidence is **unsigned** — ultimately "the vendor's log says so." An assessor who wants to verify independently can't, and a single vendor changing its export format breaks the whole pipeline. This is weeks of work, repeated every audit.
+
+## With AGP
+
+Because every vendor emitted **signed canonical events** into Acme's ledger, the evidence already exists in one format. Producing the report is a query plus a verification pass:
+
+<Steps>
+
+1. **Select the relevant events.** Filter the ledger by time window and `action.type` / `policy.decision` — e.g. every `blocked` or human-gated action in Q3. All vendors, one schema.
+
+2. **Verify each signature.** For every event, resolve `signature.key_id` in the registry and check the Ed25519 signature. A passing check means the vendor really emitted it and it wasn't altered.
+
+3. **Confirm the policy in force.** Each event carries `policy_hash`; match it to the signed policy Acme pushed. This proves *which* rule version governed *which* action.
+
+4. **Confirm the chain is intact.** The ledger is hash-chained; verifying the chain shows no event was inserted, removed, or reordered.
+
+5. **Hand the assessor verifiable evidence.** Not screenshots — signed events plus the public keys to check them. The assessor can re-run the verification themselves.
+
+</Steps>
+
+<SigningFlow caption="<b>Figure 1.</b> The assessor runs the lower pipeline on each event: schema-validate, re-canonicalize, resolve the key in the registry, and verify the Ed25519 signature — entirely independently of Acme's plane and the vendor." />
+
+## The outcome — what is now verifiable
+
+- **Human oversight is demonstrable.** L3 events show high-stakes actions were gated on a decision (and, where configured, a human approval) before executing.
+- **Enforcement is provable, not asserted.** A `blocked` decision is a signed fact tied to a specific `policy_hash`.
+- **The evidence is portable and durable.** It verifies without trusting Acme or any vendor, and it survives a vendor changing its internal systems.
+- **The audit is a query.** What was a quarterly manual effort becomes repeatable and largely mechanical.
+
+<Aside type="note" title="Why regulators like this shape">
+Frameworks — EU AI Act, NIST AI RMF, ISO 42001, HIPAA AI guidance — keep asking for *evidence that controls operated*. Cryptographically signed, schema-stable, independently-verifiable records are exactly that, and AGP makes them a by-product of normal operation rather than a special project.
+</Aside>
+
+## Related
+
+- [For auditors](/adopt/auditors/) — what to ask for and how to verify it.
+- [Conformance levels](/learn/conformance/) — why L3 events evidence human oversight.

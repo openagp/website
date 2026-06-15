@@ -1,0 +1,19 @@
+---
+title: Case studies
+description: Relatable, end-to-end scenarios showing AGP in practice — blocking data exfiltration, surviving an EU AI Act audit, investigating a cross-vendor incident, and human-approving a high-stakes action in real time.
+---
+
+import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+Abstract protocols are easy to nod along to and hard to feel. These are concrete, recognizable situations a regulated enterprise actually faces — and how AGP changes the outcome. Each walks the full path: the situation, what breaks *without* a standard, the AGP messages on the wire, and what an auditor can independently verify afterward.
+
+<CardGrid>
+  <LinkCard title="Blocking PII exfiltration (L2)" href="/case-studies/pii-exfiltration/" description="An agent tries to email customer data to an outside address. Policy blocks it inside the vendor, and the block becomes a signed, verifiable record — not a log line you have to trust." />
+  <LinkCard title="Surviving an EU AI Act audit (auditor)" href="/case-studies/eu-ai-act-audit/" description="A compliance lead must evidence human oversight and automated enforcement. With AGP it's a query over signed events, not a quarter of screenshot-gathering." />
+  <LinkCard title="Investigating a cross-vendor incident (lineage)" href="/case-studies/multi-vendor-incident/" description="One bad outcome touched three vendors. Shared trace and lineage turn three incompatible logs into a single, ordered, verifiable story." />
+  <LinkCard title="Human-approving a wire transfer (L3)" href="/case-studies/realtime-approval/" description="A finance agent proposes a high-value payment. L3 gates it on a human decision in real time — and proves the human approved before money moved." />
+</CardGrid>
+
+---
+
+Every scenario below is faithful to the protocol: the messages validate against the [canonical schemas](https://github.com/openagp/spec/tree/main/schemas), and the signatures follow [ADR 0001](/spec/adr-0001/). The first one maps directly to the runnable [`acme-walkthrough`](https://github.com/openagp/examples/tree/main/acme-walkthrough) example.

@@ -1,0 +1,74 @@
+---
+title: Conformance levels
+description: L1 (events), L2 (governance), and L3 (real-time decisions) — what each level requires, what it costs to ship, and how conformance is proven.
+---
+
+import ConformanceLadder from '../../../components/ConformanceLadder.astro';
+import { Aside } from '@astrojs/starlight/components';
+
+A vendor declares how much of AGP it implements as a **conformance level**, advertised in its `.well-known/agp` discovery document. Customers pin a minimum level in procurement; auditors read it from the registry. The levels are **cumulative** — each builds on the one before.
+
+<ConformanceLadder caption="<b>Figure 1.</b> Conformance is cumulative: every L2 vendor is also L1, every L3 vendor is also L2. A vendor advertises the highest level it fully implements." />
+
+## L1 — Events
+
+**Implements Flow A.** Emit a signed canonical event for every agent action.
+
+- **The customer gets** passive observability with cryptographic provenance — every action recorded and attributable to a registered key.
+- **The vendor must** generate well-formed events, sign them per [ADR 0001](/spec/adr-0001/), and POST them to the plane's `/agp/v0/events`.
+- **Cost:** ≤ 1 engineer-week. The reference SDK does the schema + signing for you.
+
+L1 alone is genuinely useful: it turns "trust our logs" into "here is signed evidence," and it is the foundation everything else builds on.
+
+## L2 — Governance
+
+**Implements Flow A + Flow B.** Also accept customer policy and enforce it in-process.
+
+- **The customer gets** one policy DSL enforced *inside* every conformant vendor, with each event stamped with the `policy_hash` that governed it — so they can prove which policy version applied to which action.
+- **The vendor must** accept policy (`202` + `policy_hash`), apply it within the SLA (default 60s), stamp the hash on events, and refuse policies signed by unregistered keys.
+- **Cost:** + ~1 engineer-week on top of L1.
+
+<Aside type="note" title="The plane and the vendor agree by hash">
+Because policy is canonicalized and hashed, the customer and vendor never have to trust each other's *copy* of the policy — they compare `policy_hash`. An event whose `policy_hash` doesn't match the policy the customer pushed is immediately suspicious.
+</Aside>
+
+## L3 — Real-time decisions
+
+**Implements Flow A + B + C.** Also gate high-stakes actions via a synchronous callback to the plane.
+
+- **The customer gets** the ability to block or human-approve specific actions *before they execute* — human-in-the-loop becomes a protocol primitive rather than a per-vendor feature.
+- **The vendor must** call the plane within the decision budget, honor the response exactly, and apply the policy **fallback** if the plane misses the deadline.
+- **Cost:** + ~2 engineer-weeks on top of L2.
+
+### The decision budget and fallback
+
+L3 is the hardest level because it is on the critical path of an agent action. The contract that makes it safe:
+
+<ol class="agp-steps">
+<li><b>Budget is advertised, not assumed.</b> The vendor publishes <code>decision_budget_ms</code> (default 300) in <code>.well-known/agp</code>; the plane respects it. Autocomplete-style workloads might set 50ms; a human-approval workflow might set several seconds.</li>
+<li><b>Deadline is explicit.</b> Each request carries <code>deadline_at</code>. The vendor waits no longer.</li>
+<li><b>Fallback is declared in policy.</b> On timeout or unreachability the vendor applies <code>allow_with_log</code> or <code>block</code> — never an undefined behavior.</li>
+<li><b>The event records the truth.</b> The emitted event states the decision <em>and</em> whether the fallback fired, so the audit trail never hides a degraded path.</li>
+</ol>
+
+## Proving conformance
+
+Claiming a level isn't enough — you prove it with the **Conformance Test Suite**, a single static Go binary:
+
+```bash
+agp-cts vectors                                   # byte-level cross-language vectors
+agp-cts validate-vendor --endpoint https://...    # (v0.2) black-box probe of a live endpoint
+```
+
+It checks schema conformance, signature correctness, policy-hash echoing, and decision-budget compliance, then emits a **signed conformance report**. Anyone can verify a report — there is no central authority. Vendors that pass list themselves in the [registry](/registry/) with their level.
+
+## Versioning guarantees
+
+- **Additive-only at minor versions.** v0.1 → v0.2 may add fields; existing fields never change meaning.
+- **Breaking changes only at major versions**, with a 12-month deprecation runway supporting both.
+- **Graceful unknown-field handling.** Receivers ignore fields they don't understand (and log a warning) rather than rejecting the message — so a v0.1 receiver keeps working against v0.2 traffic.
+
+## Next
+
+- [Case studies](/case-studies/) — see each level in a relatable end-to-end scenario.
+- [For vendors](/adopt/vendors/) — ship L1 today with the reference SDK.

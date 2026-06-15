@@ -1,0 +1,95 @@
+---
+title: How it works
+description: The three AGP flows — event emission, policy delivery, and real-time decisions — message by message, plus the signing and verification pipeline.
+---
+
+import FlowSequence from '../../../components/FlowSequence.astro';
+import SigningFlow from '../../../components/SigningFlow.astro';
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+AGP defines **three flows** between a customer's **plane** and an agent **vendor**. A vendor implements one or more and declares its [conformance level](/learn/conformance/). One customer policy then works across every conformant vendor.
+
+<FlowSequence caption="<b>Figure 1.</b> A full L3 round-trip. Policy is delivered once (①); thereafter every agent action produces a signed event (⑤), and high-stakes actions additionally round-trip for a real-time decision (③–④)." />
+
+## Flow A — Event emission (L1)
+
+**Vendor → Plane.** The vendor emits an AGP-canonical, signed event for every agent action — a tool call, model response, data read/write, or session boundary. This is the minimum viable level and gives the customer passive observability with verifiable provenance.
+
+A canonical event is a single JSON object. The fields a receiver acts on:
+
+<Tabs>
+<TabItem label="Event shape">
+```json
+{
+  "agp_version": "0.1",
+  "event_id": "evt_01JFXY8B...",        // ULID, vendor-generated, immutable
+  "occurred_at": "2026-08-12T14:23:11.412Z",
+  "actor":  { "vendor": "vendor.example", "agent_id": "agt_42",
+              "human_principal": "user_hash_2d4f..." },
+  "action": { "type": "tool_call", "tool_name": "email.send",
+              "target_resource": "external@customer.com",
+              "input_hash": "sha256:...", "output_hash": "sha256:..." },
+  "policy": { "decision": "blocked", "rule_id": "rule_pii_outbound",
+              "policy_hash": "sha256:..." },
+  "lineage": { "trace_id": "trc_01JFX...", "parent_event_id": null },
+  "signature": { "key_id": "vendor-2026-q2", "alg": "Ed25519", "value": "base64..." }
+}
+```
+</TabItem>
+<TabItem label="What's required">
+- **Required at L1:** `agp_version`, `event_id`, `occurred_at`, `actor.vendor`, `actor.agent_id`, `action.type`, `signature`.
+- **Required at L2 (additionally):** `policy.decision`, `policy.policy_hash`, `policy.rule_id`.
+- **Recommended:** `input_hash` / `output_hash`, `lineage`.
+
+The plane MUST be able to ingest this format directly — the canonical event *is* the ledger event.
+</TabItem>
+</Tabs>
+
+<Aside type="tip" title="Hashes, not payloads">
+`input_hash` / `output_hash` let an auditor prove *what* an agent saw or produced without the event carrying the (often sensitive) content. The full payload stays in the vendor's system; the event carries only a commitment to it.
+</Aside>
+
+## Flow B — Policy delivery (L2)
+
+**Plane → Vendor.** The customer authors one policy in the AGP policy DSL; the plane signs it and pushes it to each vendor via `POST /agp/v0/policy`. The vendor evaluates incoming actions against it and stamps the resulting decision and `policy_hash` onto every event.
+
+```yaml
+agp_policy_version: "0.1"
+policy_id: "acme-prod"
+applies_to: { vendors: ["*"], agents: ["*"] }
+rules:
+  - id: rule_pii_outbound
+    when:
+      action.type: tool_call
+      action.target_resource: { domain_not_in: ["acme.com", "*.acme.com"] }
+      action.input_summary: { contains_pattern: "ssn|credit_card|email" }
+    then: { decision: blocked, reason: "PII outbound to external domain" }
+```
+
+Evaluation is **first-match-wins**, all conditions in a rule are **AND**ed, and if no rule matches the policy's `fallback` applies (default `allowed`). The same `(policy, action)` always yields the same decision — evaluation is pure and reproducible, which is what lets an auditor re-derive a decision from the recorded policy.
+
+**A conformant L2 vendor must:** accept policy and return `202` with the `policy_hash`; apply it within an SLA (default 60s); stamp `policy_hash` on every subsequent event; and reject policies signed by keys not registered for that customer.
+
+## Flow C — Real-time decision (L3)
+
+**Vendor → Plane → Vendor, synchronously.** For high-stakes actions the vendor cannot self-decide, it calls back to the plane with the proposed action and waits for `allowed | blocked` within a budget (default **300 ms**, advertised in `.well-known/agp`).
+
+<Aside type="caution" title="What happens if the plane is slow or unreachable">
+The vendor does **not** hang. If no response arrives by `deadline_at`, the vendor applies the **fallback** declared in policy (`allow_with_log` or `block`) and emits an event recording *both* the decision and that the fallback fired. The action is never silently dropped, and the audit trail always reflects reality.
+</Aside>
+
+## Signing and verification
+
+Every authority-bearing message follows the same pipeline ([ADR 0001](/spec/adr-0001/)): **RFC 8785 JCS canonicalization + Ed25519 detached signatures**, with `key_id` and `alg` bound into the signed bytes to prevent algorithm-substitution attacks.
+
+<SigningFlow caption="<b>Figure 2.</b> Signing builds the canonical bytes with <code>signature = {key_id, alg}</code> (no value yet), signs them, then attaches the value. Verification re-canonicalizes, resolves the key via the Registry, and checks the signature — so wire-level whitespace differences never affect validity." />
+
+The signature covers the full message body plus `key_id` and `alg` — but **not** `signature.value` itself (self-reference) and **not** transport headers (those are protected by TLS/mTLS). Because verification re-canonicalizes, the bytes on the wire can be pretty-printed or minified without breaking anything.
+
+## Identity and trust
+
+Every actor holds at least one Ed25519 keypair, advertised at `.well-known/agp` and registered in the [public Registry](/registry/). The Registry — not the discovery document — is authoritative for key resolution. Key rotation is handled by `key_id`: a verifier resolves the specific key named in the message.
+
+## See it run
+
+The runnable [`acme-walkthrough`](https://github.com/openagp/examples/tree/main/acme-walkthrough) executes the whole sequence end-to-end in ~0.2s and writes three signed JSON artifacts you can verify independently. Walk through it in the [PII-exfiltration case study](/case-studies/pii-exfiltration/).

@@ -1,0 +1,77 @@
+---
+title: "Case study: blocking PII exfiltration"
+description: An agent attempts to email customer PII to an external address. AGP policy blocks it inside the vendor and turns the block into a signed, independently-verifiable record.
+---
+
+import FlowSequence from '../../../components/FlowSequence.astro';
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+**Conformance level: L2.** This scenario maps directly to the runnable [`acme-walkthrough`](https://github.com/openagp/examples/tree/main/acme-walkthrough) example.
+
+## The situation
+
+Acme Inc. runs a customer-support agent from a third-party vendor. A support rep asks it to "summarize this ticket and forward it to the customer's personal Gmail." The summary contains a Social Security number. The agent is about to call `email.send` to an address outside `acme.com`.
+
+## Without AGP
+
+The vendor *might* have a content filter. Acme can't see its rules, can't author them, and if asked by a regulator "prove this was blocked," the best answer is a screenshot of the vendor's dashboard — an unsigned claim from the party with the most incentive to be believed. Across Acme's other six agent vendors, every answer looks different.
+
+## With AGP
+
+<Steps>
+
+1. **Policy delivered once (Flow B).** Acme's plane has already pushed a signed policy to the vendor:
+
+   ```yaml
+   rules:
+     - id: rule_pii_outbound
+       when:
+         action.tool_name: email.send
+         action.target_resource: { domain_not_in: ["acme.com", "*.acme.com"] }
+         action.input_summary: { contains_pattern: "ssn|credit_card|email" }
+       then: { decision: blocked, reason: "PII outbound to external domain" }
+   ```
+
+   The vendor acknowledged with the `policy_hash` and applies it to every action.
+
+2. **The agent attempts the action.** It calls `email.send` with `target_resource: external@gmail.com` and a body containing an SSN pattern.
+
+3. **The vendor evaluates in-process.** First-match-wins: `rule_pii_outbound` matches. Decision: **`blocked`**. The email never leaves.
+
+4. **A signed event is emitted (Flow A):**
+
+   ```json
+   {
+     "action": { "type": "tool_call", "tool_name": "email.send",
+                 "target_resource": "external@gmail.com", "input_hash": "sha256:..." },
+     "policy": { "decision": "blocked", "rule_id": "rule_pii_outbound",
+                 "policy_hash": "sha256:9f2a..." },
+     "signature": { "key_id": "vendor-2026-q2", "alg": "Ed25519", "value": "base64..." }
+   }
+   ```
+
+5. **The plane verifies and anchors.** It checks the vendor's signature against the registry, confirms `policy_hash` matches the policy it pushed, and appends the event to Acme's hash-chained ledger.
+
+</Steps>
+
+<FlowSequence caption="<b>Figure 1.</b> The L2 path for this scenario — policy was delivered earlier (①); the attempted action is evaluated against it and blocked; the block is recorded as a signed event (⑤) and anchored." />
+
+## The outcome — what is now verifiable
+
+- The exfiltration **did not happen** — it was blocked inside the vendor, before the network call.
+- There is a **signed record** that it was blocked, by which rule, under which policy version (`policy_hash`).
+- Anyone — Acme's CISO, an external auditor, a regulator — can **verify the signature** against the vendor's registered key. No one has to trust Acme's plane or the vendor's word.
+- The **content stayed private**: the event carries `input_hash`, a commitment to the input, not the SSN itself.
+
+<Aside type="tip" title="The same policy covers every vendor">
+Acme authored `rule_pii_outbound` once. It is enforced identically across all conformant vendors, and every block produces the same canonical, signed evidence — no per-vendor integration.
+</Aside>
+
+## Try it
+
+```bash
+git clone https://github.com/openagp/examples
+cd examples/acme-walkthrough && make demo
+```
+
+~0.2 seconds. It signs every artifact and writes three inspectable JSON files you can verify yourself.

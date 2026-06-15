@@ -1,0 +1,54 @@
+---
+title: "Case study: investigating a cross-vendor incident"
+description: One bad outcome touched three agent vendors. Shared trace and lineage turn three incompatible logs into a single, ordered, verifiable story.
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+**Conformance level: L1 (lineage fields).** The investigation needs only signed events with `lineage`.
+
+## The situation
+
+A customer was issued a duplicate $4,000 refund. Three agents were involved: a **triage agent** (vendor A) classified the support ticket, a **finance agent** (vendor B) initiated the refund, and a **notification agent** (vendor C) emailed the customer. Somewhere across those three systems, the refund fired twice. The incident review needs to know *exactly what happened, in what order, and which step was at fault* — by end of day.
+
+## Without AGP
+
+Three vendors, three log formats, three clocks. The investigator exports each, eyeballs timestamps that don't quite line up, and tries to guess which `tool_call` in vendor B corresponds to which classification in vendor A. There is no shared identifier connecting a triage decision to the refund it triggered. The reconstruction is manual, slow, and unprovable.
+
+## With AGP
+
+Every event carries a **`lineage`** block: a `trace_id` shared across the whole workflow, and a `parent_event_id` pointing at the action that caused it. The three vendors' events are different agents — but they share one trace.
+
+<Steps>
+
+1. **Pivot on the trace.** Pull every event in the ledger with `lineage.trace_id = trc_01JFX...` — regardless of vendor. One query returns all nine events across A, B, and C.
+
+2. **Order by causality, not clocks.** `parent_event_id` forms a tree: triage (A) → refund-initiate (B) → email (C). You don't rely on three unsynchronized timestamps; you follow the chain the agents actually built.
+
+3. **Find the fork.** Two `refund.initiate` events (vendor B) share the *same* `parent_event_id` — the single triage decision. The triage agent emitted one classification; the finance agent acted on it twice. The fault is in vendor B's retry logic, not vendor A.
+
+4. **Verify it's real.** Each event's signature checks against its vendor's registered key, and the ledger chain is intact — so the reconstruction isn't a theory, it's a verified record no vendor can later dispute.
+
+</Steps>
+
+```text
+trc_01JFX9…  (one workflow, three vendors)
+└─ evt_A1  vendor-a  action: ticket.classify           → "refund eligible"
+   ├─ evt_B1  vendor-b  action: refund.initiate  $4000  ✗ duplicate
+   └─ evt_B2  vendor-b  action: refund.initiate  $4000  ✗ duplicate (same parent!)
+      └─ evt_C1  vendor-c  action: email.send  "refund processed"
+```
+
+## The outcome — what is now verifiable
+
+- The incident timeline is **one ordered story**, assembled by query, across vendors that share nothing but the protocol.
+- The **root cause is pinned** by lineage — two refunds, one parent — not inferred from timestamps.
+- The reconstruction is **signed and chain-verified**, so it stands up in a post-incident review or a chargeback dispute.
+
+<Aside type="tip" title="Lineage is cheap and L1">
+`trace_id` and `parent_event_id` are optional-but-recommended L1 fields. A vendor that does nothing but emit events with lineage already makes cross-vendor investigation tractable — no policy or L3 required.
+</Aside>
+
+## Related
+
+- [How it works](/learn/how-it-works/#flow-a--event-emission-l1) — the event and its `lineage` block.

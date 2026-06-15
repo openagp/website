@@ -61,3 +61,39 @@ site-title, .site-title { font-family: var(--openagp-serif); font-weight: 600; }
 
 /* Brand the sidebar selected state subtly. */
 .sl-markdown-content a { text-underline-offset: 0.18em; }
+
+/* ── Diagrams (theme-aware; used across docs via components) ───────── */
+.agp-fig { margin: 1.75rem 0; }
+.agp-fig svg { width: 100%; height: auto; display: block; }
+.agp-fig figcaption {
+	font-family: var(--sl-font-mono); font-size: 0.78rem;
+	color: var(--sl-color-gray-3); text-align: center; margin-top: 0.6rem; line-height: 1.5;
+}
+.agp-fig figcaption b { color: var(--sl-color-gray-2); }
+.dg-box { fill: var(--sl-color-bg); stroke: var(--sl-color-accent-high); stroke-width: 1.4; }
+.dg-box-soft { fill: var(--sl-color-gray-6); stroke: var(--sl-color-gray-4); stroke-width: 1.2; }
+.dg-label { font-family: var(--sl-font-mono); font-size: 13px; fill: var(--sl-color-white); font-weight: 600; }
+.dg-sub { font-family: var(--sl-font-mono); font-size: 11px; fill: var(--sl-color-gray-2); }
+.dg-flow { fill: none; stroke-width: 1.5; }
+.dg-flow-a { stroke: var(--sl-color-accent); }
+.dg-flow-b { stroke: var(--sl-color-accent); }
+.dg-flow-c { stroke: #7c3aed; }
+.dg-flowlabel { font-family: var(--sl-font-mono); font-size: 11px; fill: var(--sl-color-gray-2); }
+.dg-accent { fill: var(--sl-color-accent); }
+.dg-muted { stroke: var(--sl-color-gray-4); }
+
+/* Callouts / step lists for depth pages */
+.agp-steps { counter-reset: agp; list-style: none; padding: 0; margin: 1.5rem 0; }
+.agp-steps > li {
+	counter-increment: agp; position: relative; padding: 0.2rem 0 1.1rem 3rem; margin: 0;
+	border-left: 1px solid var(--sl-color-gray-5); margin-left: 1rem;
+}
+.agp-steps > li::before {
+	content: counter(agp); position: absolute; left: -0.95rem; top: 0;
+	width: 1.9rem; height: 1.9rem; border-radius: 50%;
+	background: var(--sl-color-bg); border: 1px solid var(--sl-color-accent);
+	color: var(--sl-color-accent); font-family: var(--sl-font-mono); font-size: 0.85rem;
+	display: flex; align-items: center; justify-content: center; font-weight: 700;
+}
+.agp-steps > li:last-child { border-left-color: transparent; }
+.agp-steps > li b { display:block; font-size: 1.02rem; margin-bottom: 0.15rem; }
