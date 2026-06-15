@@ -1,0 +1,11 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "website",
+	"compatibility_date": "2025-09-01",
+	// Static Astro output in ./dist served via Workers static assets.
+	// No Worker script ("main") is needed — this is an assets-only Worker.
+	"assets": {
+		"directory": "./dist",
+		"not_found_handling": "404-page"
+	}
+}
