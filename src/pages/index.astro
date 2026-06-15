@@ -31,6 +31,16 @@ const eventCode = `<span class="c">// canonical AGP event (L2)</span>
 		<meta property="og:type" content="website" />
 		<meta property="og:url" content="https://openagp.io" />
 		<meta name="twitter:card" content="summary_large_image" />
+		<script is:inline>
+			// Apply theme before paint (no flash); shares the `starlight-theme` key with the docs.
+			(() => {
+				const stored = localStorage.getItem('starlight-theme');
+				const t = stored === 'light' || stored === 'dark'
+					? stored
+					: (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+				document.documentElement.dataset.theme = t;
+			})();
+		</script>
 	</head>
 	<body>
 		<!-- Top bar -->
@@ -50,39 +60,51 @@ const eventCode = `<span class="c">// canonical AGP event (L2)</span>
 					<a href="/spec/">Spec</a>
 					<a href="/registry/">Registry</a>
 					<a href="/community/contribute/">Contribute</a>
-					<a class="btn sm ghost" href="https://github.com/openagp">GitHub ↗</a>
+					<a href="https://github.com/openagp">GitHub ↗</a>
+					<button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle color theme" title="Toggle theme">
+						<svg class="sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"></path></svg>
+						<svg class="moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"></path></svg>
+					</button>
 				</nav>
 			</div>
 		</header>
 
-		<!-- Hero -->
+		<!-- Hero: specification front-matter -->
 		<div class="hero">
 			<div class="wrap hero-grid">
 				<div>
-					<p class="overline">Agent Governance Protocol · Specification v0.1 · Working draft</p>
-					<h1>What an agent is allowed to do, who said so, and <em>what it actually did.</em></h1>
-					<p class="lead">
-						An open, vendor-neutral protocol for governing AI agents. The way SAML standardized
-						identity and MCP standardized tool-calling — AGP standardizes governance. One policy,
-						enforced and cryptographically verifiable across every vendor.
+					<div class="doc-id">
+						<span class="overline">Open specification</span>
+						<span class="pill">agp / v0.1</span>
+						<span class="pill">working draft</span>
+					</div>
+					<p class="eyebrow">The Agent Governance Protocol</p>
+					<h1>What an agent is allowed to do, who said so, and what it actually did.</h1>
+					<p class="byline">An open, vendor-neutral standard · <b>Maintained by the OpenAGP community</b> · CC BY 4.0</p>
+					<p class="abstract-p">
+						<span class="lbl">Abstract</span>
+						AGP defines a small set of signed, schema-defined messages exchanged between a customer's
+						governance plane and an agent vendor — so one policy can be enforced, and one verifiable
+						audit trail produced, across every AI agent vendor. The way SAML standardized identity and
+						MCP standardized tool-calling, AGP standardizes governance.
 					</p>
 					<div class="cta-row">
 						<a class="btn" href="/spec/">Read the specification</a>
-						<a class="btn ghost mono" href="/adopt/vendors/">$ make demo</a>
+						<a class="textlink" href="/adopt/vendors/">Run the reference demo</a>
+						<a class="textlink" href="https://github.com/openagp">Source &amp; SDKs</a>
 					</div>
 				</div>
 
-				<aside class="abstract" aria-label="At a glance">
-					<div class="label">
-						<span class="overline">Abstract</span>
-						<span class="tag">CC BY 4.0</span>
-					</div>
+				<aside class="docinfo" aria-label="Document information">
+					<div class="h">Document</div>
 					<dl>
-						<dt>Flows</dt><dd>A · Events &nbsp; B · Policy &nbsp; C · Decision</dd>
-						<dt>Levels</dt><dd>L1 → L2 → L3 conformance</dd>
-						<dt>Crypto</dt><dd>Ed25519 · RFC 8785 JCS</dd>
-						<dt>SDKs</dt><dd>Python · TypeScript · Go CTS</dd>
-						<dt>Status</dt><dd>v0.1 working draft</dd>
+						<div class="row"><dt>Identifier</dt><dd class="mono">agp/0.1</dd></div>
+						<div class="row"><dt>Status</dt><dd>Working draft</dd></div>
+						<div class="row"><dt>Flows</dt><dd>A · events &nbsp;B · policy &nbsp;C · decision</dd></div>
+						<div class="row"><dt>Conformance</dt><dd>L1 → L2 → L3</dd></div>
+						<div class="row"><dt>Signatures</dt><dd class="mono">Ed25519 · RFC 8785</dd></div>
+						<div class="row"><dt>Implementations</dt><dd>Python · TypeScript · Go</dd></div>
+						<div class="row"><dt>License</dt><dd>CC BY 4.0 / Apache-2.0</dd></div>
 					</dl>
 				</aside>
 			</div>
@@ -264,7 +286,7 @@ const eventCode = `<span class="c">// canonical AGP event (L2)</span>
 						</svg>
 						<span>OpenAGP</span>
 					</a>
-					<p class="meta">Stewarded today by <a href="https://securezeron.com">Zeron</a>, with an explicit roadmap to vendor-neutral governance by v1.0. Spec CC BY 4.0 · SDKs Apache-2.0 · registry CC0.</p>
+					<p class="meta">An open, vendor-neutral standard, with a roadmap to multi-stakeholder governance by v1.0. Spec CC BY 4.0 · SDKs Apache-2.0 · registry data CC0.</p>
 				</div>
 				<div class="cols">
 					<div>
@@ -297,6 +319,12 @@ const eventCode = `<span class="c">// canonical AGP event (L2)</span>
 				}
 			}, { threshold: 0.12 });
 			document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+
+			document.getElementById('theme-toggle')?.addEventListener('click', () => {
+				const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+				document.documentElement.dataset.theme = next;
+				localStorage.setItem('starlight-theme', next);
+			});
 		</script>
 	</body>
 </html>

@@ -15,7 +15,13 @@ export default defineConfig({
 				dark: './src/assets/logo-dark.svg',
 				replacesTitle: false,
 			},
-			customCss: ['./src/styles/custom.css'],
+			customCss: [
+				'@fontsource-variable/inter/index.css',
+				'@fontsource-variable/newsreader/index.css',
+				'@fontsource-variable/newsreader/standard-italic.css',
+				'@fontsource-variable/jetbrains-mono/index.css',
+				'./src/styles/custom.css',
+			],
 			social: [
 				{
 					icon: 'github',

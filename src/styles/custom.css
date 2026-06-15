@@ -1,79 +1,63 @@
-/* OpenAGP brand — aligned with the org profile (blue #2a6db8, purple #7c3aed). */
+/* OpenAGP docs theme — matches the "standards paper" landing.
+   Serif headings (Newsreader), Inter body, JetBrains Mono code.
+   Dark is Starlight's default :root; light is :root[data-theme='light']. */
+
 :root {
+	--sl-font: 'Inter Variable', system-ui, -apple-system, sans-serif;
+	--sl-font-mono: 'JetBrains Mono Variable', ui-monospace, 'SF Mono', Menlo, monospace;
+
+	/* dark theme (Starlight default) */
 	--sl-color-accent-low: #16243a;
 	--sl-color-accent: #2a6db8;
-	--sl-color-accent-high: #b8d4f0;
-	--openagp-purple: #7c3aed;
+	--sl-color-accent-high: #c4d9f5;
+	--sl-color-white: #f2f4f8;
+	--sl-color-gray-1: #e8ebf1;
+	--sl-color-gray-2: #b2bccb;
+	--sl-color-gray-3: #7a8596;
+	--sl-color-gray-4: #4a5364;
+	--sl-color-gray-5: #2a323e;
+	--sl-color-gray-6: #1a212b;
+	--sl-color-black: #0e1116;
+	--openagp-purple: #a98bff;
+	--openagp-serif: 'Newsreader Variable', Georgia, serif;
 }
+
 :root[data-theme='light'] {
-	--sl-color-accent-low: #d3e3f5;
+	--sl-color-accent-low: #d6e4f5;
 	--sl-color-accent: #2a6db8;
 	--sl-color-accent-high: #14365c;
+	--sl-color-white: #16243a;
+	--sl-color-gray-1: #1f2d42;
+	--sl-color-gray-2: #3d4d63;
+	--sl-color-gray-3: #6a7588;
+	--sl-color-gray-4: #99a1b0;
+	--sl-color-gray-5: #d6cfbe;
+	--sl-color-gray-6: #f1efe8;
+	--sl-color-gray-7: #f7f5f0;
+	--sl-color-black: #faf9f6;
+	--openagp-purple: #7c3aed;
 }
 
-/* Hero on the splash landing page. */
+/* Serif display for headings — gives the docs the same editorial voice. */
+.sl-markdown-content h1,
+.sl-markdown-content h2,
+.sl-markdown-content h3,
+.content-panel h1,
+h1#_top,
 .hero h1 {
-	font-weight: 750;
-	letter-spacing: -0.02em;
+	font-family: var(--openagp-serif);
+	font-weight: 560;
+	letter-spacing: -0.01em;
 }
-.hero .tagline {
-	max-width: 48ch;
+site-title, .site-title { font-family: var(--openagp-serif); font-weight: 600; }
+
+/* Page title a touch larger / editorial. */
+.sl-markdown-content h1 { font-weight: 520; }
+
+/* Tables and code keep the paper feel. */
+.sl-markdown-content :not(pre) > code {
+	font-size: 0.86em;
 }
 
-/* Two-column comparison used on the landing page. */
-.compare {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 1rem;
-	margin-top: 1.5rem;
-}
-@media (max-width: 50rem) {
-	.compare {
-		grid-template-columns: 1fr;
-	}
-}
-.compare > div {
-	border: 1px solid var(--sl-color-gray-5);
-	border-radius: 0.75rem;
-	padding: 1rem 1.25rem;
-	background: var(--sl-color-black);
-}
-.compare .without {
-	border-color: color-mix(in srgb, #d14343 40%, var(--sl-color-gray-5));
-}
-.compare .with {
-	border-color: color-mix(in srgb, var(--sl-color-accent) 55%, var(--sl-color-gray-5));
-}
-.compare h3 {
-	margin-top: 0;
-	font-size: var(--sl-text-lg);
-}
-.compare ul {
-	margin: 0;
-	padding-left: 1.1rem;
-}
-.compare li {
-	margin: 0.35rem 0;
-}
-
-/* Conformance / persona cards. */
-.cards {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-	gap: 1rem;
-	margin-top: 1.5rem;
-}
-.card {
-	border: 1px solid var(--sl-color-gray-5);
-	border-radius: 0.75rem;
-	padding: 1.25rem;
-}
-.card .level {
-	display: inline-block;
-	font-weight: 700;
-	color: var(--openagp-purple);
-}
-
-.badge-row a {
-	margin-right: 0.4rem;
-}
+/* Brand the sidebar selected state subtly. */
+.sl-markdown-content a { text-underline-offset: 0.18em; }
