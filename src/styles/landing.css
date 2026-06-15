@@ -83,8 +83,10 @@ a:hover { color: var(--accent-2); }
 	border-bottom: 1px solid var(--rule);
 }
 .topbar .wrap { display: flex; align-items: center; gap: 1.4rem; height: 58px; }
-.brand { display: flex; align-items: center; gap: 0.6rem; font-weight: 600; color: var(--ink); }
-.brand svg { width: 24px; height: 24px; display: block; }
+.brand { display: flex; align-items: center; gap: 0.55rem; font-weight: 600; color: var(--ink); }
+.brand svg { width: 26px; height: 26px; display: block; }
+/* wordmark matches the docs site title (serif), for a consistent logo lockup */
+.brand > span:not(.v) { font-family: var(--serif); font-weight: 600; font-size: 1.2rem; letter-spacing: -0.01em; }
 .brand .v { font-family: var(--mono); font-size: 0.68rem; color: var(--ink-faint); border: 1px solid var(--rule-strong); border-radius: 2rem; padding: 0.05rem 0.5rem; }
 .nav { margin-left: auto; display: flex; gap: 1.5rem; align-items: center; }
 .nav a { color: var(--ink-soft); font-size: 0.9rem; font-weight: 500; }
