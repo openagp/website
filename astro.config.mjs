@@ -60,6 +60,10 @@ export default defineConfig({
 					],
 				},
 				{
+					label: 'Compliance',
+					items: [{ label: 'Compliance mappings', slug: 'compliance' }],
+				},
+				{
 					label: 'Reference',
 					items: [
 						{ label: 'Specification', slug: 'spec' },

@@ -1,0 +1,83 @@
+---
+title: Compliance mappings
+description: How AGP's signed runtime evidence maps to AI assurance frameworks — AIUC-1, the EU AI Act, NIST AI RMF, ISO/IEC 42001, and SOC 2.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+AGP is not a certification and does not replace an assurance framework. It is the **runtime evidence layer** beneath them: the frameworks define *what* you must demonstrate; AGP produces signed, independently-verifiable records that you actually did. One protocol feeds many regimes.
+
+<figure class="agp-fig">
+	<svg viewBox="0 0 760 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Assurance frameworks sit above AGP runtime evidence">
+		<defs>
+			<marker id="cm-a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 Z" class="dg-accent"></path></marker>
+		</defs>
+		<rect class="dg-box-soft" x="20" y="20" width="720" height="66" rx="9"></rect>
+		<text class="dg-sub" x="36" y="42">CERTIFICATION · INSURANCE · REGULATION</text>
+		<g class="dg-label" font-size="12">
+			<text x="60" y="68">AIUC-1</text>
+			<text x="190" y="68">SOC 2</text>
+			<text x="300" y="68">EU AI Act</text>
+			<text x="450" y="68">NIST AI RMF</text>
+			<text x="610" y="68">ISO 42001</text>
+		</g>
+		<path class="dg-flow dg-flow-a" d="M380 90 V120" marker-end="url(#cm-a)"></path>
+		<text class="dg-flowlabel dg-accent" x="392" y="110">verifiable evidence ↑</text>
+		<rect class="dg-box" x="20" y="128" width="720" height="96" rx="9"></rect>
+		<text class="dg-label" x="36" y="156" font-size="14">AGP — runtime evidence</text>
+		<g class="dg-sub" font-size="12">
+			<text x="36" y="182">signed canonical events · policy_hash on every event</text>
+			<text x="36" y="202">L3 real-time decisions · hash-chained ledger · lineage</text>
+		</g>
+	</svg>
+	<figcaption><b>Figure 1.</b> Assurance frameworks define the controls; AGP supplies the cryptographically-verifiable evidence that those controls operated at runtime.</figcaption>
+</figure>
+
+## The AGP primitives that become evidence
+
+Five protocol features do the work in every mapping below:
+
+- **Signed canonical event** — every agent action, attributable to a registered key. Forgery requires key compromise.
+- **`policy.decision` + `policy_hash`** — proof that a specific policy version governed a specific action (`allowed` / `blocked` / `logged_only`).
+- **L3 decision** — a high-stakes action gated on a synchronous (often human) decision *before* it executes.
+- **Hash-chained ledger** — tamper-evident ordering; insertion, deletion, or reordering is detectable.
+- **`lineage`** — `trace_id` / `parent_event_id` reconstruct a workflow across vendors.
+
+## AIUC-1
+
+[AIUC-1](https://aiuc.com/) is a certification standard for enterprise AI agents — "SOC 2 for AI agents" — covering six domains. AGP supplies runtime evidence for the operational ones; **AIUC-1 certifies, AGP proves continuously.**
+
+| AIUC-1 domain | AGP evidence |
+|---|---|
+| **Data & privacy** | Policy rules that block PII egress to external domains; events carry `input_hash`/`output_hash` (commitments, not payloads); `human_principal` is a salted hash, never plaintext. |
+| **Security** | Ed25519-signed events verified against the registry; in-vendor enforcement of tool/target restrictions; mTLS transport; algorithm-substitution-resistant signing (ADR 0001). |
+| **Safety** | L3 real-time gating of high-stakes actions; `blocked` decisions recorded; fallback **fails closed** and the event records that it fired. |
+| **Reliability** | Deterministic, reproducible policy evaluation; declared decision budget and fallback behavior captured per event. |
+| **Accountability** | Hash-chained ledger; per-event `policy_hash`; `lineage`; signatures any third party can verify without trusting the plane or vendor. |
+| **Societal risks** | Policy encodes use/content restrictions; `logged_only` enables monitoring without blocking; a durable, auditable record supports oversight. |
+
+## Cross-framework matrix
+
+The same evidence anchors to the controls regulators and auditors already ask for. Anchors are indicative, at the control-family level.
+
+| AGP evidence | AIUC-1 | EU AI Act | NIST AI RMF | ISO/IEC 42001 | SOC 2 |
+|---|---|---|---|---|---|
+| Signed canonical event | Accountability | Art. 12 — record-keeping / automatic logs | MEASURE (monitor) | Logging & monitoring (Annex A) | CC7 — system monitoring |
+| `policy_hash` + decision | Security · Accountability | Art. 12 · Art. 9 (risk controls) | MANAGE | Operational controls | CC6 — logical access |
+| L3 decision / human gate | Safety | Art. 14 — human oversight | GOVERN · MANAGE | Human oversight controls | CC5 — control activities |
+| Hash-chained ledger | Accountability | Art. 12 (traceability) | MEASURE | Evidence integrity | CC7 / audit logging |
+| Conformance report (CTS) | (vendor attestation) | Art. 15 — accuracy & cybersecurity | MAP | Supplier/AI-component assurance | CC9 — vendor management |
+
+<Aside type="caution" title="What this is and isn't">
+These mappings are **guidance for assembling evidence**, not a claim of certification. AGP does not certify a vendor or grant a SOC 2 / AIUC-1 attestation — accredited auditors do that. AGP makes the evidence those audits need a *by-product of normal operation* rather than a manual project. Confirm exact clause applicability with your auditor.
+</Aside>
+
+## How to use this
+
+- **Vendors** pursuing AIUC-1 or SOC 2: emit AGP events at L1/L2 and your accountability, security, and monitoring evidence is generated and signed automatically — hand the auditor verifiable records, not screenshots.
+- **Customers / auditors**: query the ledger by control area, verify signatures against the registry, and confirm the `policy_hash` chain — see the [EU AI Act audit case study](/case-studies/eu-ai-act-audit/).
+- **Insurers**: verifiable runtime telemetry (what was attempted, what was enforced, what failed closed) is a stronger basis for pricing agent-failure risk than self-attestation.
+
+## Related
+
+- [For auditors](/adopt/auditors/) · [Case studies](/case-studies/) · [Conformance levels](/learn/conformance/)
